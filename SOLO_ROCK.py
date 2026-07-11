@@ -76,37 +76,25 @@ def get_cpu_times():
     return ft_to_int(idle), ft_to_int(kernel), ft_to_int(user)
 
 def ai_hardware_overlord():
-    print("[AI OVERLORD] Native Hardware Monitor Online. Reading CPU Load...")
     last_idle, last_kernel, last_user = get_cpu_times()
-    
     while True:
-        time.sleep(1.0) # Check every second
+        time.sleep(1.0)
         idle, kernel, user = get_cpu_times()
-        
         sys_diff = (kernel + user) - (last_kernel + last_user)
         idle_diff = idle - last_idle
         
-        if sys_diff > 0:
-            cpu_usage = ((sys_diff - idle_diff) / sys_diff) * 100.0
-        else:
-            cpu_usage = 0.0
-            
-        # Write hardware state natively into the Matrix (Zero-Bridge)
+        cpu_usage = ((sys_diff - idle_diff) / sys_diff) * 100.0 if sys_diff > 0 else 0.0
         amsv_block.cpu_temp = cpu_usage 
         
-        # DYNAMIC THROTTLING LOGIC
-        # If CPU > 50%, AI forcefully limits Software Engine capacity to prevent overheating.
         if cpu_usage > 50.0:
             amsv_block.gpu_load = max(0.2, amsv_block.gpu_load - 0.2)
-            print(f"[*] WARNING! CPU OVERHEATING ({cpu_usage:.1f}%). AI Throttling Software to {amsv_block.gpu_load*100:.0f}% capacity!")
         else:
             amsv_block.gpu_load = min(1.0, amsv_block.gpu_load + 0.1)
-            print(f"[*] AI Optimal Control. CPU at {cpu_usage:.1f}%. Software Engine allowed {amsv_block.gpu_load*100:.0f}% capacity.")
             
         last_idle, last_kernel, last_user = idle, kernel, user
 
 # -------------------------------------------------------------------------
-# 4. SENSORY INPUT (STIN)
+# 4. SENSORY INPUT & AUDIO
 # -------------------------------------------------------------------------
 def input_nerve():
     user32 = ctypes.windll.user32
@@ -116,9 +104,18 @@ def input_nerve():
         if (user32.GetAsyncKeyState(0x41) & 0x8000) != 0: state |= (1 << 1) # A
         if (user32.GetAsyncKeyState(0x53) & 0x8000) != 0: state |= (1 << 2) # S
         if (user32.GetAsyncKeyState(0x44) & 0x8000) != 0: state |= (1 << 3) # D
+        if (user32.GetAsyncKeyState(0x20) & 0x8000) != 0: state |= (1 << 4) # Space (Fire)
         if (user32.GetAsyncKeyState(0x0D) & 0x8000) != 0: state |= (1 << 7) # Enter
         amsv_block.keyboard_state = state
         time.sleep(0.016)
+
+def audio_nerve():
+    while True:
+        if amsv_block.state == 0 and amsv_block.entities[0].health <= 0:
+            ctypes.windll.kernel32.Beep(400, 500) # Death sound
+        if (amsv_block.keyboard_state & (1 << 4)) != 0: # Fire sound
+            ctypes.windll.kernel32.Beep(1200, 50)
+        time.sleep(0.1)
 
 # -------------------------------------------------------------------------
 # 5. SOFTWARE ENGINE: RENDERER (PPVO)
@@ -128,17 +125,18 @@ def render_nerve():
     class RECT(ctypes.Structure):
         _fields_ = [("left", ctypes.c_long), ("top", ctypes.c_long), ("right", ctypes.c_long), ("bottom", ctypes.c_long)]
 
-    hbrush_floor, hbrush_ceil = gdi32.CreateSolidBrush(0x00333333), gdi32.CreateSolidBrush(0x00111111)
-    hbrush_wall = gdi32.CreateSolidBrush(0x0000FF00) # Green Walls!
+    hbrush_floor = gdi32.CreateSolidBrush(0x00333333)
+    hbrush_ceil = gdi32.CreateSolidBrush(0x00111111)
+    hbrush_wall = gdi32.CreateSolidBrush(0x0000FF00) # Green Walls
+    hbrush_red = gdi32.CreateSolidBrush(0x000000FF) # Enemies
+    hbrush_yellow = gdi32.CreateSolidBrush(0x0000FFFF) # Bullets
     
     screen_w, screen_h = 800, 600
-    print("[SOFTWARE ENGINE] 3D Raycaster Matrix Online.")
     
     while True:
         try:
             hdc = user32.GetDC(0)
             if hdc:
-                # ---------------- BOOT MENU ----------------
                 if amsv_block.state == 5:
                     rc_full = RECT(0, 0, screen_w, screen_h)
                     user32.FillRect(hdc, ctypes.byref(rc_full), gdi32.CreateSolidBrush(0x000000))
@@ -148,17 +146,15 @@ def render_nerve():
                     title = "=====================================================\n"
                     title += "        SOLO ROCK V4: MONOLITHIC AI EDITION\n"
                     title += "=====================================================\n\n"
-                    title += "LORE:\n"
+                    title += "ALL SYSTEMS UNIFIED IN A SINGLE FILE.\n"
                     title += "The AI Overlord controls hardware capacity in real-time.\n"
-                    title += "It bridges the gap between Software and Hardware.\n\n"
-                    title += "CONTROLS: WASD to Move.\n\n"
+                    title += "Avoid the Swarm. Escape the Matrix.\n\n"
                     title += "PRESS ENTER TO INITIALIZE NEURAL LINK...\n"
                     user32.DrawTextW(hdc, title, -1, ctypes.byref(rc_full), 0x0000)
                     user32.ReleaseDC(0, hdc)
                     time.sleep(0.016)
                     continue
 
-                # ---------------- THE MATRIX ----------------
                 me = amsv_block.entities[0]
                 px, py, pa = me.x / 100.0 + 8.0, me.y / 100.0 + 8.0, me.ry
                 
@@ -166,14 +162,13 @@ def render_nerve():
                 user32.FillRect(hdc, ctypes.byref(RECT(0, 0, screen_w, screen_h // 2)), hbrush_ceil)
                 user32.FillRect(hdc, ctypes.byref(RECT(0, screen_h // 2, screen_w, screen_h)), hbrush_floor)
                 
-                # *** AI HARDWARE THROTTLING IN ACTION ***
-                # The AI modifies amsv_block.gpu_load based on CPU temp!
-                # If Overheating, Raycaster resolution drops from 160 rays down to 32!
                 throttle = max(0.2, min(1.0, amsv_block.gpu_load))
                 num_rays = int(160 * throttle) 
                 strip_width = screen_w // num_rays
                 
                 fov = math.pi / 3.0
+                z_buffer = [0] * num_rays
+                
                 for r in range(num_rays):
                     ray_angle = (pa - fov / 2.0) + (float(r) / float(num_rays)) * fov
                     eye_x, eye_y = math.cos(ray_angle), math.sin(ray_angle)
@@ -187,32 +182,72 @@ def render_nerve():
                         elif WORLD_MAP[ty][tx] == 1:
                             hit = True
                     
+                    z_buffer[r] = dist
                     ceiling = float(screen_h / 2.0) - screen_h / float(dist)
                     floor = screen_h - ceiling
                     
                     rc_wall = RECT(r * strip_width, int(ceiling), (r + 1) * strip_width, int(floor))
                     user32.FillRect(hdc, ctypes.byref(rc_wall), hbrush_wall)
                 
-                # Draw Minimap Radar (AI CPU Usage indicator text)
+                # Draw Sprites (Swarm and Bullets)
+                for i in range(1, 100):
+                    e = amsv_block.entities[i]
+                    if e.z > 0 or e.health > 0:
+                        ex, ey = e.x / 100.0 + 8.0, e.y / 100.0 + 8.0
+                        dx, dy = ex - px, ey - py
+                        dist = math.sqrt(dx*dx + dy*dy)
+                        if dist < 0.1 or dist >= 20.0: continue
+                        
+                        sprite_angle = math.atan2(dy, dx) - pa
+                        while sprite_angle < -math.pi: sprite_angle += 2.0 * math.pi
+                        while sprite_angle > math.pi: sprite_angle -= 2.0 * math.pi
+                        
+                        if abs(sprite_angle) < (fov / 2.0) + 0.5:
+                            screen_x = int((0.5 * (sprite_angle / (fov / 2.0)) + 0.5) * screen_w)
+                            sprite_h = int(screen_h / dist)
+                            sprite_w = sprite_h
+                            
+                            r_idx = int((screen_x / screen_w) * num_rays)
+                            if 0 <= r_idx < num_rays and z_buffer[r_idx] > dist:
+                                rc_s = RECT(screen_x - sprite_w//2, (screen_h - sprite_h)//2, screen_x + sprite_w//2, (screen_h + sprite_h)//2)
+                                brush = hbrush_red if i >= 61 else hbrush_yellow
+                                user32.FillRect(hdc, ctypes.byref(rc_s), brush)
+
+                # Draw Radar and Diagnostics
+                map_size, cell_size = 16, 6
+                offset_x, offset_y = screen_w - (map_size * cell_size) - 20, 20
+                user32.FillRect(hdc, ctypes.byref(RECT(offset_x, offset_y, offset_x + map_size*cell_size, offset_y + map_size*cell_size)), gdi32.CreateSolidBrush(0x000000))
+                
+                for y in range(map_size):
+                    for x in range(map_size):
+                        if WORLD_MAP[y][x] == 1:
+                            user32.FillRect(hdc, ctypes.byref(RECT(offset_x + x*cell_size, offset_y + y*cell_size, offset_x + (x+1)*cell_size, offset_y + (y+1)*cell_size)), hbrush_wall)
+                
+                user32.FillRect(hdc, ctypes.byref(RECT(offset_x + int(px)*cell_size, offset_y + int(py)*cell_size, offset_x + (int(px)+1)*cell_size, offset_y + (int(py)+1)*cell_size)), gdi32.CreateSolidBrush(0x00FFFFFF))
+                
                 rc_cpu = RECT(10, 10, 400, 50)
                 gdi32.SetTextColor(hdc, 0x000000FF if amsv_block.cpu_temp > 50 else 0x00FFFFFF)
                 gdi32.SetBkMode(hdc, 1)
-                user32.DrawTextW(hdc, f"CPU LOAD: {amsv_block.cpu_temp:.1f}% | ENGINE CAPACITY: {amsv_block.gpu_load*100:.0f}%", -1, ctypes.byref(rc_cpu), 0)
+                user32.DrawTextW(hdc, f"AI MONOLITHIC CORE | CPU: {amsv_block.cpu_temp:.1f}% | ENGINE LIMIT: {amsv_block.gpu_load*100:.0f}%", -1, ctypes.byref(rc_cpu), 0)
 
                 user32.ReleaseDC(0, hdc)
-                
-                # *** AI FPS CAP THROTTLING ***
-                # If Overheating, the frame rate is forcibly capped!
                 time.sleep(0.016 / throttle) 
                 
         except Exception:
             pass
 
 # -------------------------------------------------------------------------
-# 6. SOFTWARE ENGINE: PHYSICS (CAIN)
+# 6. SOFTWARE ENGINE: PHYSICS & SWARM AI (CAIN)
 # -------------------------------------------------------------------------
 def physics_nerve():
     amsv_block.entities[0].x, amsv_block.entities[0].y = -650.0, -650.0 # Spawn at 1,1
+    
+    # Initialize Swarm (IDs 61-90)
+    for i in range(61, 91):
+        amsv_block.entities[i].x = (WORLD_MAP[8][8] * 100) - 800 + (i*10)
+        amsv_block.entities[i].y = (WORLD_MAP[8][8] * 100) - 800 + (i*10)
+        amsv_block.entities[i].health = 100.0
+
     while True:
         me, kb = amsv_block.entities[0], amsv_block.keyboard_state
         if amsv_block.state == 5:
@@ -220,21 +255,60 @@ def physics_nerve():
             time.sleep(0.016)
             continue
             
+        # Player Movement
         speed = 10.0
         new_x, new_y = me.x, me.y
-        if (kb & (1 << 0)) != 0: # W
+        if (kb & (1 << 0)) != 0: 
             new_x += math.cos(me.ry) * speed; new_y += math.sin(me.ry) * speed
-        if (kb & (1 << 2)) != 0: # S
+        if (kb & (1 << 2)) != 0: 
             new_x -= math.cos(me.ry) * speed; new_y -= math.sin(me.ry) * speed
-        if (kb & (1 << 1)) != 0: me.ry -= 0.1 # A
-        if (kb & (1 << 3)) != 0: me.ry += 0.1 # D
+        if (kb & (1 << 1)) != 0: me.ry -= 0.1
+        if (kb & (1 << 3)) != 0: me.ry += 0.1
         
-        # Collision
         grid_x, grid_y = int(new_x / 100.0 + 8.0), int(new_y / 100.0 + 8.0)
         if 0 <= grid_x < 16 and 0 <= grid_y < 16:
             if WORLD_MAP[grid_y][grid_x] == 0:
                 me.x, me.y = new_x, new_y
                 
+        # Bullet Logic (IDs 1-10)
+        if (kb & (1 << 4)) != 0: # Fire
+            for i in range(1, 11):
+                if amsv_block.entities[i].z == 0: # Inactive
+                    amsv_block.entities[i].x, amsv_block.entities[i].y = me.x, me.y
+                    amsv_block.entities[i].vx = math.cos(me.ry) * 30.0
+                    amsv_block.entities[i].vy = math.sin(me.ry) * 30.0
+                    amsv_block.entities[i].z = 1.0 # Active
+                    break
+                    
+        for i in range(1, 11):
+            if amsv_block.entities[i].z > 0:
+                amsv_block.entities[i].x += amsv_block.entities[i].vx
+                amsv_block.entities[i].y += amsv_block.entities[i].vy
+                
+                # Check collision with walls
+                bx, by = int(amsv_block.entities[i].x / 100.0 + 8.0), int(amsv_block.entities[i].y / 100.0 + 8.0)
+                if WORLD_MAP[by][bx] == 1:
+                    amsv_block.entities[i].z = 0 # Destroy bullet
+                else:
+                    # Check collision with swarm
+                    for s in range(61, 91):
+                        if amsv_block.entities[s].health > 0:
+                            dist = math.sqrt((amsv_block.entities[i].x - amsv_block.entities[s].x)**2 + (amsv_block.entities[i].y - amsv_block.entities[s].y)**2)
+                            if dist < 50.0:
+                                amsv_block.entities[s].health -= 50.0
+                                amsv_block.entities[i].z = 0
+                                break
+                                
+        # Swarm AI Logic
+        for i in range(61, 91):
+            if amsv_block.entities[i].health > 0:
+                dx = me.x - amsv_block.entities[i].x
+                dy = me.y - amsv_block.entities[i].y
+                dist = math.sqrt(dx*dx + dy*dy)
+                if dist > 10.0 and dist < 800.0: # Chase Player
+                    amsv_block.entities[i].x += (dx/dist) * 2.0
+                    amsv_block.entities[i].y += (dy/dist) * 2.0
+
         time.sleep(0.016)
 
 # -------------------------------------------------------------------------
@@ -242,8 +316,8 @@ def physics_nerve():
 # -------------------------------------------------------------------------
 if __name__ == '__main__':
     print("\n=========================================================")
-    print(" SOLO ROCK V4: MONOLITHIC AI EDITION")
-    print(" Bridging Software Engine with AI Hardware Controller")
+    print(" SOLO ROCK V4: ULTIMATE MONOLITHIC EDITION")
+    print(" All Swarm AI, Audio, Engine & Hardware Logic Unified!")
     print("=========================================================\n")
     
     amsv_block.state = 5
@@ -252,11 +326,12 @@ if __name__ == '__main__':
     threads = [
         threading.Thread(target=ai_hardware_overlord, daemon=True),
         threading.Thread(target=input_nerve, daemon=True),
+        threading.Thread(target=audio_nerve, daemon=True),
         threading.Thread(target=physics_nerve, daemon=True)
     ]
     for t in threads: t.start()
     
     try:
-        render_nerve() # Blocks main thread to keep GDI happy
+        render_nerve() 
     except KeyboardInterrupt:
         print("\n[SYSTEM] Terminating Neural Link...")
