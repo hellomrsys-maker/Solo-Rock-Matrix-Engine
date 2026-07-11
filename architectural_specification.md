@@ -133,19 +133,22 @@ To replace traditional slow software data buses, the entire interface fabric is 
 * **SCCN-176 to SCCN-200:** Anchors the massive outer loop feedback connections, handles asymmetric thread spawning across uneven compute cores, and safely sequesters background OS system updates into a virtualized suspended stack.
 
 ### 6.9 Advanced High-End Mapping & Memory Address Nerves
-* **HEMM-201 to HEMM-215:** Bypasses standard memory page lookup tables, pre-allocates cache footprints sequentially, and uses structural mapping vectors to link code logic directly to silicon execution addresses in under 1 picosecond.
+* **HEMM-201 to HEMM-210:** Bypasses standard memory page lookup tables, pre-allocates cache footprints sequentially, and uses structural mapping vectors to link code logic directly to silicon execution addresses in under 1 picosecond.
+* **HEMM-211 to HEMM-215 (Memory Tag Attestation Nerves):** Implements hardware Memory Tagging Extensions (MTE) via High-End Mapping, assigning unique cryptographic tags to data packets (HEMM-211) to eliminate memory corruption and out-of-bounds pointer manipulation.
 
 ### 6.10 Thermal-Triggered Structural Shifting Nerves
 * **TTSS-216 to TTSS-220:** Powers down idle math blocks within active processors and reroutes data pathways away from physically hot areas of the die to resting traces.
 * **TTSS-221 to TTSS-225 (Thermal Floor Nerves):** Manages the Temperature Floor baseline dynamically, from pre-heating idle GPU clusters (TTSS-222) to routing data dynamically away from local die hotspots (TTSS-223) to keep active execution gates baseline-warmed for zero-latency operations.
 
 ### 6.11 External Software Suppression & Kernel Isolation Nerves
-* **ESSK-226 to ESSK-235:** Strips the native operating system of its scheduling priority, cuts the signal bandwidth of external apps to protect storage lanes, and prevents virtual memory file swapping during high-intensity modes.
+* **ESSK-226 to ESSK-230:** Strips the native operating system of its scheduling priority, cuts the signal bandwidth of external apps to protect storage lanes, and prevents virtual memory file swapping during high-intensity modes.
+* **ESSK-231 to ESSK-235 (Isolation Bridge Security Nerves):** Governs the hardware boundaries of the Isolated Bridge, dynamically severing bus links (ESSK-231) between untrusted background environments and primary application memory arrays.
 
 ### 6.12 Final Master Loop Convergence & Integrity Nerves
 * **FMLC-236 to FMLC-265:** Stabilizes positional audio arrays, manages multiplayer network data packets, inserts generated synthetic frames to mask rendering drops, handles micro-volt stepping across overclocked gates, and encapsulates the primary compute cores inside a triple-layered concentric isolation shield.
 * **VRFP-266 to VRFP-275 (VRFP & Interlocking Pixel Control Nerves):** Maps display panels directly onto physical GPU/TPU registers (VRFP-271) and regulates sub-pixel power draw/thermal ceilings (VRFP-274) to drive display outputs with absolute zero compositing latency.
-* **FMLC-276 to FMLC-300:** Handles gesture tracking trajectory predictions and total system convergence pathways to loop Node 1 inputs to Node 4 pixel updates instantly.
+* **FMLC-276 to FMLC-298:** Handles gesture tracking trajectory predictions and total system convergence pathways to loop Node 1 inputs to Node 4 pixel updates instantly.
+* **FMLC-299 to FMLC-300 (Cryptographic Attestation Nerves):** Validates cryptographic signatures of instructions running on the core loops (FMLC-299) to block unauthorized code execution at the silicon gate layer.
 
 ---
 
@@ -253,9 +256,25 @@ Every layer is bound to your 300 micro-nerve pipelines, ensuring that your entir
 
 ---
 
+## CHAPTER 25: THE HARDWARE-ISOLATED SECURITY & ATTESTATION SCHEMATIC
+
+### 25.1 Hardened Isolation Bridge Logic
+To protect the core calculations, the **Control AI** manages a secure boundary across the **Isolated Bridge** (originally mapped in Chapter 13). When external background applications (operating in the capped $0.001\%$ performance bracket) request memory or disk IO operations, the **Isolation Bridge Security Nerves** (`ESSK-231` to `ESSK-235`) intercept the bus signals at the physical trace layer. If any unauthorized access is detected, the bridge dynamically severs the bus links to isolate untrusted background runtime threads.
+
+### 25.2 Cryptographic Hardware Attestation
+Security inside the **Inner Core Protection Rings** (Chapter 16) is cryptographically enforced. Only signed, verified application instructions are authorized to traverse the high-speed **Teal and Magenta Core Loops**. 
+* **The Verification Loop:** The **Cryptographic Attestation Nerves** (`FMLC-299` to `FMLC-300`) act as physical gateway logic gates. They verify the hash of oncoming task vectors against a burned-in hardware public key before the instructions are allowed to execute on Node 4's physical silicon gates.
+
+### 25.3 Memory Tagging Extensions (MTE) via High-End Mapping
+Using the coordinate mapping matrix of the **High-End Mapping Engine**, the system implements a hardware-level Memory Tagging Extension:
+* **The Mechanism:** Each memory page allocated within the shared SRAM ring buffer is assigned a 4-bit cryptographic tag by the **Memory Tag Attestation Nerves** (`HEMM-211` to `HEMM-215`). 
+* **Memory Protection:** Every register read or write instruction targeting that page must present a matching tag. If the tags do not match, the transaction is rejected at the physical memory controller gate, preventing all classes of memory corruption, buffer overflows, and pointer manipulation exploits before they can ever trigger a software fault.
+
+---
+
 ## CHAPTER 7: SUMMARY OF SYSTEM FLOW INTEGRATION
 
-Through this comprehensive structural alignment, the **Solo Rock (AI)** platform effectively bridges the physical constraints of hardware with the flexibility of software. By replacing traditional, high-overhead operating system queues with 300 direct micro-nerve traces, an active **Temperature Floor**, a Zero-Buffer **Pixel Control Matrix**, and an immediate, symmetric equality loop ($1=2=3=4=\text{AI}$), data bottlenecks are completely removed. The architecture acts exactly like an advanced, highly evolved biological entity—preserving power, keeping temperatures perfectly stable, and executing complex processing threads with absolute zero delay.
+Through this comprehensive structural alignment, the **Solo Rock (AI)** platform effectively bridges the physical constraints of hardware with the flexibility of software. By replacing traditional, high-overhead operating system queues with 300 direct micro-nerve traces, an active **Temperature Floor**, a Zero-Buffer **Pixel Control Matrix**, a **Hardened Isolation Security Ring**, and an immediate, symmetric equality loop ($1=2=3=4=\text{AI}$), data bottlenecks and vulnerabilities are completely removed. The architecture acts exactly like an advanced, highly secured, and evolved biological entity—preserving power, keeping temperatures perfectly stable, protecting core calculations, and executing complex processing threads with absolute zero delay.
 
 ---
 
