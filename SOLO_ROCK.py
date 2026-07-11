@@ -44,11 +44,8 @@ def get_amsv_block():
 amsv_block = get_amsv_block()
 
 # -------------------------------------------------------------------------
-# 2. THE 200-NERVE DATABASE & ACTIVATION STATE
+# 2. THE 300-NERVE DATABASE & ACTIVATION STATE
 # -------------------------------------------------------------------------
-NERVE_CHANNELS = []
-
-# Populate the 200 nerves
 NERVES_DATA = [
     # CERN 1-25
     ("CERN-001", "Main Intent Nerve", 0x00FFFF), ("CERN-002", "Context Freeze Nerve", 0x00FFFF),
@@ -171,13 +168,65 @@ NERVES_DATA = [
     ("SCCN-200", "Total Loop Closure Nerve", 0xFF00FF),
 ]
 
-# Track current firing states of all 200 nerves
-nerve_states = [0.0] * 200
+# Fill Gap 201-250
+for i in range(201, 251):
+    NERVES_DATA.append((f"RFU-{i}", "Reserved Neural Pathway", 0x444444))
+
+# Append Nerves 251-300
+NERVES_DATA.extend([
+    # HASW 251-255
+    ("HASW-251", "Positional Audio Vector Nerve", 0x0088FF), ("HASW-252", "Acoustic Ray-Tracing Nerve", 0x0088FF),
+    ("HASW-253", "Low-Frequency Impact Pump Nerve", 0x0088FF), ("HASW-254", "Spatial Audio Noise Gate Nerve", 0x0088FF),
+    ("HASW-255", "Dynamic Voice Mix Isolation Nerve", 0x0088FF),
+
+    # NPW 256-260
+    ("NPW-256", "Server Ping Stabilization Nerve", 0x00FF88), ("NPW-257", "Predictive Packet Buffer Nerve", 0x00FF88),
+    ("NPW-258", "Wi-Fi/Ethernet Hardware Toggle Nerve", 0x00FF88), ("NPW-259", "Data Frame Error Re-shifter Nerve", 0x00FF88),
+    ("NPW-260", "Game Server Direct-Route Nerve", 0x00FF88),
+
+    # RMVG 261-265
+    ("RMVG-261", "VRAM Page Lockout Nerve", 0xFF5500), ("RMVG-262", "Texture Tile Decompression Nerve", 0xFF5500),
+    ("RMVG-263", "On-Die Memory Bandwidth Booster Nerve", 0xFF5500), ("RMVG-264", "Stale Cache Evacuation Nerve", 0xFF5500),
+    ("RMVG-265", "Asymmetric Video Memory Balance Nerve", 0xFF5500),
+
+    # VRFP 266-270
+    ("VRFP-266", "Scanline Synchronization Nerve", 0xFF0055), ("VRFP-267", "Synthetic Frame Injection Nerve", 0xFF0055),
+    ("VRFP-268", "Display Stream Compression Valve Nerve", 0xFF0055), ("VRFP-269", "Anti-Stutter Pacing Nerve", 0xFF0055),
+    ("VRFP-270", "Display Local Dimming Sync Nerve", 0xFF0055),
+
+    # ACOC 271-275
+    ("ACOC-271", "Silicon Voltage Spike Cushion Nerve", 0xAA00FF), ("ACOC-272", "Dynamic Thread Spreader Nerve", 0xAA00FF),
+    ("ACOC-273", "Micro-Volt Stepping Governor Nerve", 0xAA00FF), ("ACOC-274", "Parasitic Heat Killer Nerve", 0xAA00FF),
+    ("ACOC-275", "Frequency Uncoupling Catalyst Nerve", 0xAA00FF),
+
+    # PIDV 276-280
+    ("PIDV-276", "Input Jitter Suppression Nerve", 0x55FF00), ("PIDV-277", "High-Polling Frequency Nerve", 0x55FF00),
+    ("PIDV-278", "Gesture Trajectory Predictor Nerve", 0x55FF00), ("PIDV-279", "Zero-Delay Controller Pipeline Nerve", 0x55FF00),
+    ("PIDV-280", "Tactile Response Calibration Nerve", 0x55FF00),
+
+    # GCLA 281-285
+    ("GCLA-281", "View Frustum Object Culling Nerve", 0x00AAFF), ("GCLA-282", "Ray-Tracing Bounce Predictor Nerve", 0x00AAFF),
+    ("GCLA-283", "Variable-Rate Shading Director Nerve", 0x00AAFF), ("GCLA-284", "Vertex Buffer Stream Catalyst Nerve", 0x00AAFF),
+    ("GCLA-285", "Shadow Map Shadow Tracker Nerve", 0x00AAFF),
+
+    # ILCS 286-300
+    ("ILCS-286", "Pink Loop Reverse Carrier Nerve", 0xFFFFFF), ("ILCS-287", "Light Blue Loop Reverse Carrier Nerve", 0xFFFFFF),
+    ("ILCS-288", "Diagonal Cross-Track Telemetry Nerve", 0xFFFFFF), ("ILCS-289", "Shared Memory Coherency Validator Nerve", 0xFFFFFF),
+    ("ILCS-290", "Triple Isolation Shield Key Nerve", 0xFFFFFF), ("ILCS-291", "Electrical Trace Width Alternator Nerve", 0xFFFFFF),
+    ("ILCS-292", "Suspended Task Stack Guard Nerve", 0xFFFFFF), ("ILCS-293", "Omnidirectional Impulse Trigger Nerve", 0xFFFFFF),
+    ("ILCS-294", "Symmetric State Resolver Nerve", 0xFFFFFF), ("ILCS-295", "Silicon Block Temperature Shifter Nerve", 0xFFFFFF),
+    ("ILCS-296", "Direct Input Matrix Injector Nerve", 0xFFFFFF), ("ILCS-297", "Dynamic Scale Engine Trigger Nerve", 0xFFFFFF),
+    ("ILCS-298", "Cache Allocation Priority Lock Nerve", 0xFFFFFF), ("ILCS-299", "Hardware Crash Protection Shield Nerve", 0xFFFFFF),
+    ("ILCS-300", "Total System Convergence Nerve", 0xFFFFFF),
+])
+
+# Initialize states for 300 nerves
+nerve_states = [0.0] * 300
 
 def update_ansm_telemetry():
     while True:
         # Simulate neural action potentials firing down the channels
-        for i in range(200):
+        for i in range(300):
             if random.random() < 0.15:
                 nerve_states[i] = 1.0 # Fire!
             else:
@@ -289,7 +338,7 @@ def render_nerve():
                     title = "=====================================================\n"
                     title += "        SOLO ROCK V4: MONOLITHIC AI EDITION\n"
                     title += "=====================================================\n\n"
-                    title += "ALL 200 NERVE CHANNELS CONNECTED & LOGGED IN REAL-TIME.\n"
+                    title += "ALL 300 NERVE CHANNELS CONNECTED & LOGGED IN REAL-TIME.\n"
                     title += "Zero-Bridge Memory Architecture online.\n"
                     title += "Avoid the Swarm. Escape the Matrix.\n\n"
                     title += "PRESS ENTER TO RUN DIAGNOSTICS & SYSTEM MATRIX...\n"
@@ -368,8 +417,8 @@ def render_nerve():
                 
                 user32.FillRect(hdc, ctypes.byref(RECT(offset_x + int(px)*cell_size, offset_y + int(py)*cell_size, offset_x + (int(px)+1)*cell_size, offset_y + (int(py)+1)*cell_size)), gdi32.CreateSolidBrush(0x00FFFFFF))
                 
-                # Draw the 200-Nerve ANSM Firing Grid (Right Side, below Radar)
-                grid_rows, grid_cols = 10, 20
+                # Draw the 300-Nerve ANSM Firing Grid (Right Side, 15 rows x 20 columns)
+                grid_rows, grid_cols = 15, 20
                 box_w, box_h = 5, 5
                 grid_x_start = screen_w - (grid_cols * (box_w + 2)) - 20
                 grid_y_start = offset_y + (map_size * cell_size) + 15
@@ -378,12 +427,12 @@ def render_nerve():
                 gdi32.SetTextColor(hdc, 0x0000FF00)
                 gdi32.SetBkMode(hdc, 1)
                 rc_lbl = RECT(grid_x_start, grid_y_start - 12, screen_w - 20, grid_y_start)
-                user32.DrawTextW(hdc, "ANSM 200-NERVE SYSTEM MATRIX", -1, ctypes.byref(rc_lbl), 0)
+                user32.DrawTextW(hdc, "ANSM 300-NERVE SYSTEM MATRIX", -1, ctypes.byref(rc_lbl), 0)
 
                 for r in range(grid_rows):
                     for c in range(grid_cols):
                         idx = r * grid_cols + c
-                        if idx < 200:
+                        if idx < 300:
                             state = nerve_states[idx]
                             color_val = NERVES_DATA[idx][2]
                             # Blend color based on firing state
@@ -501,8 +550,8 @@ def physics_nerve():
 # -------------------------------------------------------------------------
 if __name__ == '__main__':
     print("\n=========================================================")
-    print(" SOLO ROCK V4: ULTIMATE ANSM MONOLITHIC EDITION")
-    print(" All 200 Nerve Channels Unified into one System Matrix!")
+    print(" SOLO ROCK V4: ULTIMATE ANSM 300 MONOLITHIC EDITION")
+    print(" All 300 Nerve Channels Unified into one System Matrix!")
     print("=========================================================\n")
     
     amsv_block.state = 5
