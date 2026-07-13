@@ -1,9 +1,23 @@
+import sys
+import os
+import platform
+
+# On non-Windows platforms, SOLO_ROCK.py uses ctypes.windll which doesn't exist.
+# Redirect to dashboard.py (cross-platform Streamlit app) instead.
+if platform.system() != "Windows":
+    import subprocess
+    # Execute dashboard.py as a Streamlit app
+    subprocess.run(
+        [sys.executable, "-m", "streamlit", "run",
+         os.path.join(os.path.dirname(__file__), "dashboard.py")],
+        cwd=os.path.dirname(__file__)
+    )
+    sys.exit(0)
+
 import ctypes
 import math
 import threading
 import time
-import sys
-import os
 import random
 from multiprocessing import shared_memory
 
