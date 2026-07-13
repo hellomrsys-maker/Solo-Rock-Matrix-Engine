@@ -266,16 +266,28 @@ python run_control_loop.py --ticks 10 --interval 1
 
 ## Dashboard
 
-For a visual, judge-friendly view of the same control loop, run the Streamlit dashboard:
+There are **two** Streamlit apps in this repo, for two different purposes — deploy or run whichever matches what you want to show:
+
+### `dashboard.py` — the control-loop dashboard (the actual hackathon demo)
 
 ```bash
-pip install -r requirements-dashboard.txt
+pip install -r requirements.txt
 streamlit run dashboard.py
 ```
 
-It shows, live: the detected hardware profile (topology), real CPU/RAM telemetry with a rolling history chart, the Central AI's current decision (`FULL_RATE` / `BATCH` / `THROTTLE` / `EMERGENCY`), and a table of the same task routed through all four node permutation modes side by side.
+This is the visual front end for the AI orchestration engine described throughout this README: the detected hardware profile (topology), real CPU/RAM telemetry with a rolling history chart, the Central AI's current decision (`FULL_RATE` / `BATCH` / `THROTTLE` / `EMERGENCY`), and a table of the same task routed through all four node permutation modes side by side.
 
 It also has a **🧪 Simulation Mode** — sliders for CPU temperature/load/RAM that let you demo `THROTTLE` and `EMERGENCY` behavior on demand, without needing a genuinely hot machine. Simulation mode only computes what the Decision Engine *would* decide; it never calls into the real Emergency Override, so it can never trigger an actual power-plan change. Only Live mode's `EMERGENCY` path can do that, and only on Windows with an administrator shell — identical to the safety model everywhere else in this README.
+
+### `SOLO_ROCK_STREAMLIT.py` — the visual raycaster demo (bonus, cosmetic)
+
+```bash
+streamlit run SOLO_ROCK_STREAMLIT.py
+```
+
+A browser-playable, cross-platform reimplementation of the Wolfenstein-style raycaster in `SOLO_ROCK.py` (which is Windows-only, drawing directly via `ctypes.windll` GDI calls) with the 300-nerve grid rendered alongside it. This is a **visual/cosmetic demo** — it shows the "nerve" branding and a game loop, but it does not exercise the Central AI / Decision Engine / node-routing logic that `dashboard.py` does. Use `dashboard.py` when you want to demonstrate the actual orchestration engine; use this one for a flashier, game-like visual.
+
+> **Deploying to Streamlit Cloud:** an app only runs the one file set as its **"Main file path"** in the app's settings. If you're deploying `dashboard.py`, make sure that setting points at `dashboard.py`, not `SOLO_ROCK.py` (which isn't a Streamlit app at all and will crash immediately with `AttributeError: ctypes.windll` on any non-Windows host) or `SOLO_ROCK_STREAMLIT.py` (a different app). All dependencies for both Streamlit apps are in the root `requirements.txt`, which Streamlit Cloud picks up automatically with no extra configuration.
 
 ---
 
@@ -368,11 +380,11 @@ Solo-Rock-Matrix-Engine/
 │   ├── wire_registry.py        #   Inter-module wiring
 │   └── pipelines/              #   input / timing / runtime / performance / output
 ├── run_control_loop.py         # Cross-platform live control-loop demo (start here)
-├── dashboard.py                # Streamlit dashboard: visual view of the same control loop
-├── requirements-dashboard.txt  # Optional: only needed for dashboard.py
+├── dashboard.py                # Streamlit dashboard: visual view of the control loop (the real demo)
+├── SOLO_ROCK_STREAMLIT.py      # Streamlit raycaster demo: cosmetic, cross-platform (bonus visual)
 ├── solo_rock_boot.py           # Boot sequence (discovery + init)
 ├── realtime_boot.py            # Real-time multi-process engine (Windows)
-├── SOLO_ROCK.py                # Full monolithic demo build (Windows)
+├── SOLO_ROCK.py                # Full monolithic demo build (Windows, native GDI — NOT a Streamlit app)
 ├── amsv_benchmark.py           # Shared-memory core benchmark
 ├── stress_test.py              # Stress & thermal test suite
 ├── microneer_arbitrator_matrix.v   # FPGA concept: hardware nerve arbiter (Verilog)

@@ -1,3 +1,0 @@
-# Optional: only needed to run dashboard.py (the Streamlit control-loop dashboard).
-# The core engine (requirements.txt) has no dependency on this.
-streamlit>=1.32,<2
