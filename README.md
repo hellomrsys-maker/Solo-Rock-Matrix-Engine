@@ -258,9 +258,15 @@ python amsv_benchmark.py
 # See the live control loop actually make routing decisions from real
 # telemetry, on any OS — this is the fastest way to see the system work
 python run_control_loop.py --ticks 10 --interval 1
+
+# See it prove the point with numbers: naive retry-storm vs. SOLO ROCK,
+# measured against this machine's own real telemetry
+python benchmark.py --ticks 30 --interval 0.3
 ```
 
 `run_control_loop.py` boots the Central AI, reads live CPU/RAM telemetry, classifies the workload, and dispatches a demo task through all four permutation modes of the symmetric node ring — printing the routing trace and final action (`DISPATCH` / `DISPATCH_BATCHED` / `HOLD` / `REJECT`) on every tick. It requires no admin rights and makes no hardware changes.
+
+`benchmark.py` answers "how many redundant hardware dispatches does this actually avoid?" with real numbers instead of a claim. Every tick samples this machine's real CPU/RAM telemetry and compares two strategies against that *same* data: a **naive** client that fires every attempt straight at hardware regardless of load, versus **SOLO ROCK**, which coalesces `BATCH` ticks, paces `THROTTLE` ticks, and fully holds `EMERGENCY` ticks per the Decision Engine's real verdict. It prints a tick-by-tick log plus a final report — dispatch counts, percentage reduction, and peak temp/load/RAM observed. Like `run_control_loop.py`, it never touches real hardware controls itself; that's still `CentralAI.tick()`'s own `EMERGENCY` path, unchanged. On a quiet/idle machine you'll see 0% reduction (correctly — there was nothing to throttle); run it while something CPU-heavy is happening to see `BATCH`/`THROTTLE` actually engage.
 
 ---
 
@@ -278,6 +284,8 @@ streamlit run dashboard.py
 This is the visual front end for the AI orchestration engine described throughout this README: the detected hardware profile (topology), real CPU/RAM telemetry with a rolling history chart, the Central AI's current decision (`FULL_RATE` / `BATCH` / `THROTTLE` / `EMERGENCY`), and a table of the same task routed through all four node permutation modes side by side.
 
 It also has a **🧪 Simulation Mode** — sliders for CPU temperature/load/RAM that let you demo `THROTTLE` and `EMERGENCY` behavior on demand, without needing a genuinely hot machine. Simulation mode only computes what the Decision Engine *would* decide; it never calls into the real Emergency Override, so it can never trigger an actual power-plan change. Only Live mode's `EMERGENCY` path can do that, and only on Windows with an administrator shell — identical to the safety model everywhere else in this README.
+
+It also has a **Live Benchmark** section with a "Run benchmark on this server" button — it runs `benchmark.py`'s naive-vs-SOLO-ROCK comparison against the demo server's own telemetry and shows the result inline. Because a website can never read a *visitor's* CPU/RAM sensors (browsers don't expose that, by design — see the Safety Model), the same section also gives you the exact `git clone` + `pip install` + `python benchmark.py` command to run the identical comparison against your **own** machine's real telemetry in your own terminal.
 
 ### `SOLO_ROCK_STREAMLIT.py` — the visual raycaster demo (bonus, cosmetic)
 
@@ -380,6 +388,7 @@ Solo-Rock-Matrix-Engine/
 │   ├── wire_registry.py        #   Inter-module wiring
 │   └── pipelines/              #   input / timing / runtime / performance / output
 ├── run_control_loop.py         # Cross-platform live control-loop demo (start here)
+├── benchmark.py                # Naive vs. SOLO ROCK dispatch benchmark, real telemetry in
 ├── dashboard.py                # Streamlit dashboard: visual view of the control loop (the real demo)
 ├── SOLO_ROCK_STREAMLIT.py      # Streamlit raycaster demo: cosmetic, cross-platform (bonus visual)
 ├── solo_rock_boot.py           # Boot sequence (discovery + init)

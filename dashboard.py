@@ -50,6 +50,7 @@ from central_command.decision_engine import (
     THERMAL_WARNING_C,
 )
 from nodes.ai_hub import AiHub, MODE_ORDERS
+from benchmark import run_benchmark
 
 st.set_page_config(page_title="SOLO ROCK Control Loop", page_icon="🧠", layout="wide")
 
@@ -109,6 +110,73 @@ def render_routing_table(hub, mode_action_payload_builder):
             "Final Action": FINAL_ACTION_ICON.get(result["final_action"], result["final_action"]),
         })
     st.table(rows)
+
+
+def render_benchmark_section():
+    st.subheader("🧪 Live Benchmark — Naive vs. SOLO ROCK")
+    st.caption(
+        "Naive software fires every command straight at hardware, busy or not. "
+        "SOLO ROCK reads real telemetry and coalesces, paces, or holds — this "
+        "measures the difference with real numbers, not a canned demo."
+    )
+
+    col_run, col_ticks = st.columns([1, 2])
+    with col_ticks:
+        bench_ticks = st.slider("Ticks to sample", 10, 60, 20, key="bench_ticks")
+    with col_run:
+        st.write("")  # vertical alignment
+        run_clicked = st.button("▶️ Run benchmark on this server", key="run_bench")
+
+    if run_clicked:
+        progress = st.progress(0, text="Sampling live telemetry...")
+
+        def on_tick(i, total, snapshot, action, reason):
+            progress.progress((i + 1) / total, text=f"Tick {i+1}/{total} -> {action}")
+
+        results = run_benchmark(ticks=bench_ticks, interval=0.15, on_tick=on_tick)
+        progress.empty()
+
+        r_cols = st.columns(4)
+        r_cols[0].metric("Naive dispatches", results["naive_dispatches"])
+        r_cols[1].metric("SOLO ROCK dispatches", results["solo_rock_dispatches"])
+        r_cols[2].metric("Avoided", results["avoided_dispatches"])
+        r_cols[3].metric("Reduction", f"{results['reduction_pct']:.1f}%")
+
+        st.table({
+            "Action": list(results["action_counts"].keys()),
+            "Ticks": list(results["action_counts"].values()),
+        })
+
+        if results["reduction_pct"] > 0:
+            st.success(
+                f"SOLO ROCK avoided {results['avoided_dispatches']} redundant hardware "
+                f"dispatches ({results['reduction_pct']:.1f}%) on **this server's** real "
+                f"telemetry during this run."
+            )
+        else:
+            st.info(
+                "This server stayed idle/cool for the whole run, so there was nothing to "
+                "throttle — every attempt was FULL_RATE. That's expected on a quiet cloud "
+                "container. Run it on your own machine under real load to see BATCH/THROTTLE "
+                "actually engage."
+            )
+
+    st.markdown("**Want your own machine's real numbers?** This dashboard runs on a cloud "
+                "container — it can only benchmark *its own* telemetry, never a visitor's "
+                "computer (see the Safety Model below for why). To see SOLO ROCK reason "
+                "about your own CPU/RAM/thermal state, run it locally:")
+    st.code(
+        "git clone https://github.com/hellomrsys-maker/Solo-Rock-Matrix-Engine-NeuroSys.git\n"
+        "cd Solo-Rock-Matrix-Engine-NeuroSys\n"
+        "pip install -r requirements.txt\n"
+        "python benchmark.py --ticks 30 --interval 0.3",
+        language="bash",
+    )
+    st.caption(
+        "Prints a live report of your own machine's telemetry tick-by-tick, then a "
+        "naive-vs-SOLO-ROCK comparison — the same logic this page's button just ran, "
+        "against your real hardware instead of the demo server's."
+    )
 
 
 def main():
@@ -200,6 +268,9 @@ def main():
     if not simulate and len(st.session_state.history["cpu_temp"]) > 1:
         st.subheader(f"Telemetry History (last {len(st.session_state.history['cpu_temp'])} ticks)")
         st.line_chart(st.session_state.history)
+
+    st.divider()
+    render_benchmark_section()
 
     st.divider()
     st.caption(
