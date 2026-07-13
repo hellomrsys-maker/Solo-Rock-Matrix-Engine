@@ -60,7 +60,7 @@ Each node exposes `route_payload(payload)` and mutates a plain dict in place, ap
 | Concept | Code | Interface used |
 |---|---|---|
 | Temperature / load / RAM / battery sensing | `hardware_drivers/hardware_reader.py` | Windows: LibreHardwareMonitor WMI namespace → `MSAcpi_ThermalZoneTemperature` (ACPI) → `psutil`. Linux/macOS: `psutil.sensors_temperatures()` (hwmon/coretemp/k10temp) directly. |
-| Hardware topology (CPU/GPU/DPU) | `hardware_drivers/topology.py` | `rocm-smi`, `nvidia-smi`, WMI `Win32_VideoController`, `lspci` — first hit wins, de-duplicated |
+| Hardware topology (CPU/GPU/TPU) | `hardware_drivers/topology.py` | `rocm-smi`, `nvidia-smi`, WMI `Win32_VideoController`, `lspci` — first hit wins, de-duplicated |
 | Power-envelope control | `hardware_drivers/power_controller.py` | `powercfg` on Windows (subgroup `54533251-…` / setting `bc5038f7-…` = Maximum Processor State). Reports `supported = False` and no-ops safely everywhere else. |
 | Background-process restraint | `hardware_drivers/process_controller.py` | Standard OS process priority controls via `psutil.Process.nice()` — cross-platform: Windows priority classes on Windows, POSIX nice values (0–19) elsewhere |
 | Raw input capture | `hardware_drivers/input_hook.py` | `pynput` listener hooks |
@@ -182,7 +182,7 @@ CPU temperature (Linux/macOS):
     └─ fallback → 0.0 sentinel
 ```
 
-`hardware_drivers/topology.py` runs the equivalent chain for hardware *presence* rather than a live reading: `rocm-smi` → `nvidia-smi` → WMI `Win32_VideoController` → `lspci`, each contributing to a de-duplicated GPU list, plus an operator-declared `SOLO_ROCK_DPU_PRESENT` environment flag for DPU/SmartNIC systems (there is no universal userspace probe for those). `HardwareTopology.profile` collapses the result to `CPU_ONLY`, `CPU_GPU`, or `CPU_GPU_DPU` — the same three buckets the README's dynamic-hardware-support diagram describes — and `GlobalStateVector.hardware_profile()` is what `CentralAI` and the demo script read.
+`hardware_drivers/topology.py` runs the equivalent chain for hardware *presence* rather than a live reading: `rocm-smi` → `nvidia-smi` → WMI `Win32_VideoController` → `lspci`, each contributing to a de-duplicated GPU list, plus an operator-declared `SOLO_ROCK_TPU_PRESENT` environment flag for TPU/SmartNIC systems (there is no universal userspace probe for those). `HardwareTopology.profile` collapses the result to `CPU_ONLY`, `CPU_GPU`, or `CPU_GPU_TPU` — the same three buckets the README's dynamic-hardware-support diagram describes — and `GlobalStateVector.hardware_profile()` is what `CentralAI` and the demo script read.
 
 Planned extensions of this chain (see README roadmap): live ROCm SMI utilization/wattage (today only GPU *presence* is detected, not load), and a Linux `cpufreq`/RAPL equivalent to `power_controller.py`'s Windows `powercfg` path so THROTTLE decisions can act instead of staying telemetry-only outside Windows.
 
@@ -213,7 +213,7 @@ Process isolation means a fault in one subsystem cannot take down the loop — t
 | `ttss_temp_floor` | 16-bit | Live temperature-floor reading (thermal back-pressure input) |
 | `pdec_vrm_preramp` | 1-bit | PDEC's voltage pre-ramp command (the "reactive pre-execution sync") |
 
-`tb_microneer_arbitrator.v` is the simulation testbench. The point of this artifact is architectural, not product: it demonstrates that the arbitration loop is simple and regular enough to migrate below the OS entirely — the software engine is a prototype of a mechanism that could ultimately live in silicon or on a DPU.
+`tb_microneer_arbitrator.v` is the simulation testbench. The point of this artifact is architectural, not product: it demonstrates that the arbitration loop is simple and regular enough to migrate below the OS entirely — the software engine is a prototype of a mechanism that could ultimately live in silicon or on a TPU.
 
 ## 10. Extension Points
 
@@ -222,8 +222,8 @@ The core control loop (telemetry → decision → four-node routing → optional
 1. **Live GPU telemetry** (`central_command/global_state_vector.py`, `hardware_drivers/topology.py`) — `HardwareTopology` already detects *which* GPUs are present via ROCm/NVIDIA SMI; wire `rocm-smi --showuse`/`--showpower` output into `GlobalStateVector.sync_from_hardware()` so `amsv_block.gpu_load`/`wattage` reflect the real device instead of whatever the demo workload last wrote.
 2. **Linux/macOS power control** (`hardware_drivers/power_controller.py`) — implement a `cpufreq`/RAPL-based equivalent of `set_max_processor_state()` so a THROTTLE decision can actually act outside Windows instead of logging "unsupported".
 3. **Department-aware task payloads** (`nodes/node3_balance.py`) — currently balances purely on recent fire count; a richer signal (queue depth per manager, per-department thermal contribution) would make routing decisions sharper under mixed workloads.
-4. **DPU offload lane** — route network/storage I/O nerves through DPU-class devices where `topology.py` reports one present (today it's detection-only via an operator-declared environment flag, with no dispatch path yet).
+4. **TPU offload lane** — route network/storage I/O nerves through TPU-class devices where `topology.py` reports one present (today it's detection-only via an operator-declared environment flag, with no dispatch path yet).
 5. **New nerves** (`departments/<dept>/nerves/`) — the intended everyday contribution: one file, one behavior, auto-discovered.
-6. **Visualization** — `dashboard.py` (Streamlit) already gives a live view of telemetry, the Central AI decision, and all four routing modes; `v4_pixel_visualizer.html` remains the lower-level AMSV pixel prototype. Extending either to plot GPU/DPU lanes once item 1 above lands is the natural next step; the memory layout in §3 is the read contract for both.
+6. **Visualization** — `dashboard.py` (Streamlit) already gives a live view of telemetry, the Central AI decision, and all four routing modes; `v4_pixel_visualizer.html` remains the lower-level AMSV pixel prototype. Extending either to plot GPU/TPU lanes once item 1 above lands is the natural next step; the memory layout in §3 is the read contract for both.
 
 When in doubt, preserve the three rules in §1 — they are the architecture.

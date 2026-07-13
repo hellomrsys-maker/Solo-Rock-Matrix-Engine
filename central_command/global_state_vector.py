@@ -50,7 +50,7 @@ class GlobalStateVector:
         return dict(self._last_snapshot)
 
     def hardware_profile(self):
-        """CPU-only / CPU+GPU / CPU+GPU+DPU routing profile for this machine."""
+        """CPU-only / CPU+GPU / CPU+GPU+TPU routing profile for this machine."""
         return self.topology.profile
 
 

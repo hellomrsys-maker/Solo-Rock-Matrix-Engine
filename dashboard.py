@@ -150,7 +150,7 @@ def main():
     cols[0].metric("OS", topo.os_name)
     cols[1].metric("CPU cores", f"{topo.cpu_physical_cores}p / {topo.cpu_logical_cores}l")
     cols[2].metric("GPUs detected", len(topo.gpus) if topo.gpus else "None")
-    cols[3].metric("DPU present", "Yes" if topo.has_dpu else "No")
+    cols[3].metric("TPU present", "Yes" if topo.has_tpu else "No")
     cols[4].metric("Routing profile", topo.profile)
 
     st.divider()

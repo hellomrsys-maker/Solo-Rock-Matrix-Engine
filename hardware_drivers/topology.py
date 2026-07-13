@@ -3,7 +3,7 @@ Hardware topology detection for the Central System (the Brain).
 
 Probes what silicon is actually present on the running machine so the
 Decision Engine can build its routing table dynamically, instead of
-assuming a fixed CPU/GPU/DPU configuration. Every probe here degrades
+assuming a fixed CPU/GPU/TPU configuration. Every probe here degrades
 gracefully: an undetectable device class is simply reported absent,
 never raises.
 """
@@ -58,16 +58,16 @@ def _detect_linux_gpu():
             if "VGA compatible controller" in line or "3D controller" in line]
 
 
-def _detect_dpu():
+def _detect_tpu():
     """
-    DPU / SmartNIC detection has no universal userspace API. We only
-    report a DPU present if an operator explicitly flags one via
+    TPU / SmartNIC detection has no universal userspace API. We only
+    report a TPU present if an operator explicitly flags one via
     environment variable, or a known accelerator device node exists.
     Absence is the correct default on almost all developer machines.
     """
     import os
-    if os.environ.get("SOLO_ROCK_DPU_PRESENT", "").lower() in ("1", "true", "yes"):
-        return ["Operator-declared DPU (SOLO_ROCK_DPU_PRESENT)"]
+    if os.environ.get("SOLO_ROCK_TPU_PRESENT", "").lower() in ("1", "true", "yes"):
+        return ["Operator-declared TPU (SOLO_ROCK_TPU_PRESENT)"]
     return []
 
 
@@ -82,7 +82,7 @@ class HardwareTopology:
         self.cpu_logical_cores = psutil.cpu_count(logical=True) or 1
         self.cpu_physical_cores = psutil.cpu_count(logical=False) or 1
         self.gpus = []
-        self.has_dpu = False
+        self.has_tpu = False
         self.refresh()
 
     def refresh(self):
@@ -94,7 +94,7 @@ class HardwareTopology:
         # De-duplicate while preserving order
         seen = set()
         self.gpus = [g for g in gpus if not (g in seen or seen.add(g))]
-        self.has_dpu = bool(_detect_dpu())
+        self.has_tpu = bool(_detect_tpu())
         return self
 
     @property
@@ -104,8 +104,8 @@ class HardwareTopology:
     @property
     def profile(self):
         """The routing profile name the Decision Engine keys off of."""
-        if self.has_gpu and self.has_dpu:
-            return "CPU_GPU_DPU"
+        if self.has_gpu and self.has_tpu:
+            return "CPU_GPU_TPU"
         if self.has_gpu:
             return "CPU_GPU"
         return "CPU_ONLY"
@@ -116,7 +116,7 @@ class HardwareTopology:
             "cpu_physical_cores": self.cpu_physical_cores,
             "cpu_logical_cores": self.cpu_logical_cores,
             "gpus": list(self.gpus),
-            "has_dpu": self.has_dpu,
+            "has_tpu": self.has_tpu,
             "profile": self.profile,
         }
 
@@ -125,7 +125,7 @@ class HardwareTopology:
         gpu_desc = ", ".join(d["gpus"]) if d["gpus"] else "none"
         return (f"<HardwareTopology profile={d['profile']} "
                 f"cores={d['cpu_physical_cores']}p/{d['cpu_logical_cores']}l "
-                f"gpus=[{gpu_desc}] dpu={d['has_dpu']}>")
+                f"gpus=[{gpu_desc}] tpu={d['has_tpu']}>")
 
 
 if __name__ == "__main__":

@@ -37,7 +37,7 @@
 
 ## The Problem
 
-When a CPU, GPU, or DPU is saturated with a heavy workload, software runtimes frequently misread the slow response as *failure* rather than *busyness*. The result is a well-known pathology:
+When a CPU, GPU, or TPU is saturated with a heavy workload, software runtimes frequently misread the slow response as *failure* rather than *busyness*. The result is a well-known pathology:
 
 1. **Redundant re-submission.** Runtimes and polling loops re-issue commands the hardware is already processing.
 2. **Instruction flooding.** Caches and command queues fill with duplicate work, evicting useful state.
@@ -52,7 +52,7 @@ SOLO ROCK models its control plane on the most battle-tested distributed schedul
 
 | Biological System | SOLO ROCK Subsystem | Responsibility |
 |---|---|---|
-| **Central Nervous System** (brain) | `central_command/` + `nodes/` | Analyzes workload requirements, maps available hardware topology (CPU / GPU / DPU mix), and makes global scheduling decisions |
+| **Central Nervous System** (brain) | `central_command/` + `nodes/` | Analyzes workload requirements, maps available hardware topology (CPU / GPU / TPU mix), and makes global scheduling decisions |
 | **Autonomic Nervous System** (heartbeat, thermoregulation) | `hardware_drivers/` + PDEC/TSN departments | Continuously monitors battery, temperature, and power limits in the background; keeps hardware inside its safe envelope without conscious intervention |
 | **Peripheral Nervous System** (sensory & motor nerves) | `departments/` + `infrastructure/` | Bridges software API calls to hardware SDKs; paces and batches tasks so hardware is fed efficiently, never flooded |
 
@@ -92,7 +92,7 @@ flowchart TB
     subgraph HW["Hardware Layer"]
         CPU["CPU"]
         GPU["GPU"]
-        DPU["DPU / Accelerators"]
+        TPU["TPU / Accelerators"]
     end
 
     APP -->|"task requests"| PNS
@@ -213,7 +213,7 @@ flowchart LR
     Q -->|"CPU only"| A["All lanes → CPU cores<br/>Focus: thread pacing,<br/>priority isolation,<br/>thermal headroom"]
     Q -->|"CPU + iGPU"| B["Compute → CPU<br/>Graphics/parallel → iGPU<br/>Focus: shared power-budget<br/>arbitration (one thermal pool)"]
     Q -->|"CPU + dGPU"| C["Latency work → CPU<br/>Throughput work → dGPU<br/>Focus: transfer batching,<br/>independent thermal envelopes"]
-    Q -->|"CPU + GPU + DPU"| D["Full mesh routing<br/>Focus: offload I/O & network<br/>paths to DPU, free CPU<br/>for primary workload"]
+    Q -->|"CPU + GPU + TPU"| D["Full mesh routing<br/>Focus: offload I/O & network<br/>paths to TPU, free CPU<br/>for primary workload"]
 ```
 
 The principle is **graceful degradation and graceful expansion**: every nerve declares which hardware class it drives, and the registries simply skip nerves whose hardware isn't present. Adding support for a new device class means adding nerve modules — not restructuring the engine.
@@ -364,7 +364,7 @@ Solo-Rock-Matrix-Engine/
 │   ├── node4_hardware.py       #   Turns live telemetry into back-pressure / final_action
 │   └── ai_hub.py                #   Routes a payload through all 4 nodes in any of the 4 permutation orders
 ├── hardware_drivers/           # AUTONOMIC SYSTEM (Power & Thermal)
-│   ├── topology.py             #   Cross-platform CPU/GPU(ROCm/CUDA)/DPU detection
+│   ├── topology.py             #   Cross-platform CPU/GPU(ROCm/CUDA)/TPU detection
 │   ├── hardware_reader.py      #   Telemetry: temps/load/RAM/battery (LHM/ACPI/WMI on Windows, psutil elsewhere)
 │   ├── power_controller.py     #   OS power-plan control (powercfg on Windows, safe no-op elsewhere)
 │   ├── process_controller.py   #   Cross-platform background process priority management
@@ -409,7 +409,7 @@ Honest disclosure for contributors and judges — this is a hackathon prototype,
 |---|---|
 | AMSV shared-memory core | ✅ Working, benchmarked |
 | Telemetry (Hardware Reader) | ✅ Working, cross-platform (LHM / ACPI / WMI on Windows, `psutil` sensors elsewhere) |
-| Hardware topology detection | ✅ Working — CPU/GPU (ROCm SMI, NVIDIA SMI, WMI, `lspci`) / DPU profiling |
+| Hardware topology detection | ✅ Working — CPU/GPU (ROCm SMI, NVIDIA SMI, WMI, `lspci`) / TPU profiling |
 | Power & process control | ✅ Working on Windows (requires admin); safe telemetry-only no-op elsewhere |
 | Central AI decision logic | ✅ Working — real thermal/load/RAM thresholds drive FULL_RATE / BATCH / THROTTLE / EMERGENCY |
 | Board of Directors arbitration | ✅ Working — priority-based with a starvation guard |
@@ -427,8 +427,8 @@ Honest disclosure for contributors and judges — this is a hackathon prototype,
 
 - [ ] **AMD ROCm live telemetry** — `topology.py` already detects ROCm-visible AMD GPUs; wire `rocm-smi`/`pyrsmi` utilization and wattage into `GlobalStateVector` so `gpu_load`/`wattage` in the AMSV reflect the real device, not just its presence
 - [ ] **Linux power control** — a `cpufreq`/`RAPL`-based equivalent to `power_controller.py`'s Windows `powercfg` path, so THROTTLE decisions can act on Linux instead of staying telemetry-only
-- [ ] **DPU offload lane** — route network/storage I/O nerves through DPU-class devices where `topology.py` reports one present
-- [ ] **Dashboard history for GPU/DPU lanes** — extend `dashboard.py`'s history chart once live GPU telemetry lands above
+- [ ] **TPU offload lane** — route network/storage I/O nerves through TPU-class devices where `topology.py` reports one present
+- [ ] **Dashboard history for GPU/TPU lanes** — extend `dashboard.py`'s history chart once live GPU telemetry lands above
 - [ ] **Test suite & CI** — automated regression coverage for the decision engine, node routing, and AMSV layout
 
 ---
