@@ -3,16 +3,21 @@ import os
 import platform
 
 # On non-Windows platforms, SOLO_ROCK.py uses ctypes.windll which doesn't exist.
-# Redirect to dashboard.py (cross-platform Streamlit app) instead.
+# When running in a Streamlit environment on Linux/macOS, import and run dashboard.py instead.
 if platform.system() != "Windows":
-    import subprocess
-    # Execute dashboard.py as a Streamlit app
-    subprocess.run(
-        [sys.executable, "-m", "streamlit", "run",
-         os.path.join(os.path.dirname(__file__), "dashboard.py")],
-        cwd=os.path.dirname(__file__)
-    )
-    sys.exit(0)
+    try:
+        import streamlit
+        # We're in a Streamlit environment on a non-Windows platform.
+        # Load dashboard.py's code directly
+        dashboard_path = os.path.join(os.path.dirname(__file__), "dashboard.py")
+        with open(dashboard_path) as f:
+            exec(f.read())
+        sys.exit(0)
+    except ImportError:
+        # Not in Streamlit, just exit
+        print("SOLO ROCK V4 is Windows-only for native rendering.")
+        print("For cross-platform execution, use: streamlit run dashboard.py")
+        sys.exit(1)
 
 import ctypes
 import math
