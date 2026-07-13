@@ -1,6 +1,11 @@
 # SOLO ROCK — Solo Rock Matrix Engine
-# Runtime dependencies (Windows 10/11, Python 3.10+)
+# Runtime dependencies (Windows 10/11, Python 3.10+; core engine also runs on Linux/macOS)
 
-psutil>=5.9      # Process, CPU, and memory telemetry + process priority control
-pynput>=1.7      # Low-level keyboard/mouse input hooks (STIN sensory nerves)
-Pillow>=10.0     # Image handling for the demo workload / visualizer assets
+psutil>=5.9        # Process, CPU, and memory telemetry + process priority control
+pynput>=1.7        # Low-level keyboard/mouse input hooks (STIN sensory nerves, native desktop demos only)
+Pillow>=10.0       # Image handling for the demo workload / visualizer / Streamlit raycaster renderer
+numpy>=1.24        # Numeric helpers for the Streamlit demos
+
+# Web dashboards (dashboard.py, SOLO_ROCK_STREAMLIT.py) — needed only if you're
+# running or deploying one of the Streamlit apps, e.g. to Streamlit Community Cloud.
+streamlit>=1.28
