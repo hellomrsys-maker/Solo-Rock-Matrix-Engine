@@ -85,7 +85,8 @@ class HardwareReader:
         """Cross-platform fallback via psutil.sensors_temperatures() (Linux hwmon/coretemp)."""
         try:
             sensors = psutil.sensors_temperatures()
-        except (AttributeError, NotImplementedError):
+        except (AttributeError, NotImplementedError, FileNotFoundError, OSError, PermissionError):
+            # Sensors not available on this platform or container environment
             return None
         if not sensors:
             return None
@@ -112,7 +113,8 @@ class HardwareReader:
         """Battery charge percentage, or None if no battery is present."""
         try:
             battery = psutil.sensors_battery()
-        except (AttributeError, NotImplementedError):
+        except (AttributeError, NotImplementedError, FileNotFoundError, OSError):
+            # Battery not available on this platform or container environment
             return None
         return battery.percent if battery else None
 
