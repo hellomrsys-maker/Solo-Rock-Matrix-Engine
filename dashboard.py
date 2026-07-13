@@ -26,6 +26,17 @@ import os
 import sys
 import time
 
+# Some imported modules print non-ASCII characters (e.g. a degree sign) on
+# console output. A default Windows terminal often isn't UTF-8, which turns
+# that into a crash (UnicodeEncodeError) the moment such a line prints —
+# most visibly right when an EMERGENCY event fires. Force UTF-8 first.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        try:
+            _stream.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
 import streamlit as st
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))

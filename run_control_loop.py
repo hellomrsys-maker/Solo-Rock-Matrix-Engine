@@ -18,6 +18,16 @@ import os
 import sys
 import time
 
+# A default Windows terminal is often not UTF-8; force it so any non-ASCII
+# console output (e.g. a degree sign during an EMERGENCY event) can't crash
+# the process with a UnicodeEncodeError.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        try:
+            _stream.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from central_command.central_ai import CentralAI
@@ -31,7 +41,7 @@ def main():
     args = parser.parse_args()
 
     print("=" * 60)
-    print("  SOLO ROCK — LIVE CONTROL LOOP DEMO")
+    print("  SOLO ROCK - LIVE CONTROL LOOP DEMO")
     print("=" * 60)
 
     ceo = CentralAI()

@@ -18,7 +18,7 @@ class EmergencyOverride:
     def trigger_thermal_shutdown(self, current_temp):
         """CEO Level Override: Bypasses all normal flow to save the hardware."""
         print("\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        print(f" [CEO OVERRIDE] THERMAL CRITICAL DETECTED: {current_temp}°C")
+        print(f" [CEO OVERRIDE] THERMAL CRITICAL DETECTED: {current_temp} C")
         print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         
         # 1. Instantly throttle CPU Maximum State to 85% to cut heat generation
