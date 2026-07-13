@@ -332,6 +332,29 @@ for batch in data_loader:
 
 **See the full guide:** [`docs/DIAGNOSTICS.md`](docs/DIAGNOSTICS.md) — complete walkthrough with example workflows, troubleshooting, and CI/CD integration.
 
+### Integration Examples
+
+Real-world code examples showing SOLO ROCK in action:
+
+- **`examples/ml_training_loop.py`** — ML training with adaptive batching based on hardware load
+  - Coalesces batches during moderate load (30-50% dispatch reduction)
+  - Paces submissions during thermal stress (5-10°C cooler)
+  - Holds submissions during emergency (protects system)
+
+- **`examples/api_inference_server.py`** — REST API inference server with load-aware request handling
+  - Serves immediately under light load
+  - Batches requests under moderate load
+  - Rejects with backoff signal during thermal emergency
+  - Prevents client retry storms
+
+**Run an example:**
+```bash
+python examples/ml_training_loop.py
+python examples/api_inference_server.py
+```
+
+See [`examples/README.md`](examples/README.md) for full guide, common patterns, and troubleshooting.
+
 ---
 
 ## Dashboard
@@ -515,7 +538,12 @@ Solo-Rock-Matrix-Engine/
 ├── tb_microneer_arbitrator.v       # Verilog testbench
 ├── architectural_specification.md  # Full design specification
 ├── docs/ARCHITECTURE.md            # Code-level architectural mapping
-└── docs/DIAGNOSTICS.md            # [NEW] Production CLI user guide + workflows + integration examples
+├── docs/DIAGNOSTICS.md            # Production CLI user guide + workflows
+├── examples/                       # [NEW] Integration examples
+│   ├── README.md                  #   Complete guide to examples
+│   ├── ml_training_loop.py        #   ML training with adaptive batching (30-50% dispatch reduction)
+│   └── api_inference_server.py    #   REST API inference with load-aware request handling
+└── README.md                       # This file
 ```
 
 ---
