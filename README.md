@@ -7,6 +7,10 @@
 ![Status](https://img.shields.io/badge/Status-Hackathon%20Prototype-orange)
 ![Event](https://img.shields.io/badge/AMD%20Developer%20Hackathon-Act%20II-red)
 
+[![Lint & Format](https://github.com/hellomrsys-maker/Solo-Rock-Matrix-Engine/workflows/Lint%20%26%20Format%20Check/badge.svg)](https://github.com/hellomrsys-maker/Solo-Rock-Matrix-Engine/actions/workflows/lint.yml)
+[![Tests & Coverage](https://github.com/hellomrsys-maker/Solo-Rock-Matrix-Engine/workflows/Tests%20%26%20Coverage/badge.svg)](https://github.com/hellomrsys-maker/Solo-Rock-Matrix-Engine/actions/workflows/test.yml)
+[![Docs](https://github.com/hellomrsys-maker/Solo-Rock-Matrix-Engine/workflows/Documentation/badge.svg)](https://github.com/hellomrsys-maker/Solo-Rock-Matrix-Engine/actions/workflows/docs.yml)
+
 > Modern hardware is fast. Modern software often isn't fast at *talking to it*. SOLO ROCK sits between the two and keeps the conversation efficient — pacing, batching, and routing work so silicon runs at its designed potential instead of drowning in redundant instructions.
 
 ---

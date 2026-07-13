@@ -2,3 +2,28 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+
+# Coverage reports
+.coverage
+htmlcov/
+coverage.xml
+.coverage.*
+
+# Pytest
+.pytest_cache/
+pytest.log
+
+# Database
+solo_rock.db
+solo_rock.db-*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db

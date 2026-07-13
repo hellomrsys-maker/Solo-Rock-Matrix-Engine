@@ -1,0 +1,23 @@
+name: Documentation
+on: [push, pull_request]
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install markdown linter
+        run: pip install markdownlint-cli
+      - name: Validate Markdown
+        run: markdownlint '**/*.md' --ignore node_modules --ignore tests/
+      - name: Install link checker
+        run: pip install markdown-link-check
+      - name: Check for broken links in docs
+        run: |
+          if [ -f README.md ]; then markdown-link-check README.md || true; fi
+          if [ -d docs ]; then for f in docs/*.md; do markdown-link-check "$f" || true; done; fi
+        shell: bash
