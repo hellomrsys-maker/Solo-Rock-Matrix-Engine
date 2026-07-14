@@ -230,6 +230,9 @@
             <div class="log-box" id="log-box">
                 <div class="log-entry" style="color: #666;">System Initialized...</div>
             </div>
+            
+            <div class="hud-title" style="margin-top: 15px;">NATURAL LANGUAGE INTERFACE</div>
+            <input type="text" id="ai-chat-input" placeholder="Query Solo Rock AI Core..." style="background:#000; border:1px solid #00ffcc; color:#00ffcc; font-family:'Share Tech Mono', monospace; padding:8px; font-size:0.9rem; outline:none; width:100%; box-sizing:border-box;">
         </div>
 
         <!-- Visualizer Canvas -->
@@ -276,7 +279,10 @@
             entry.style.color = color;
             entry.innerText = `[${logTick++}] ${msg}`;
             box.appendChild(entry);
-            if(box.children.length > 20) {
+            
+            // Auto scroll to bottom
+            box.scrollTop = box.scrollHeight;
+            if(box.children.length > 30) {
                 box.removeChild(box.firstChild);
             }
         }
@@ -382,6 +388,62 @@
             if (frameCount % 6 === 0) updateHUD();
 
             requestAnimationFrame(renderFrame);
+        }
+
+        // Natural Language Query Handler
+        const chatInput = document.getElementById('ai-chat-input');
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const query = chatInput.value.trim();
+                if (!query) return;
+                addLog(`User: ${query}`, '#ffffff');
+                chatInput.value = '';
+                
+                setTimeout(() => {
+                    processQuery(query);
+                }, 200);
+            }
+        });
+
+        function processQuery(q) {
+            const query = q.toLowerCase();
+            let response = "COMMAND_UNRECOGNIZED: Analyzing natural language query pattern...";
+            let color = "#ff3366";
+            
+            if (query.includes("temp") || query.includes("floor") || query.includes("heat") || query.includes("warm")) {
+                response = "AI-CORE: Temperature Floor active. Infant pre-heater (TTSS-222) maintaining baseline warm to prevent wake-up thermal shock.";
+                color = "#ff9933";
+                addLog("TTSS-222: Infant Pre-Heater ACTIVE", "#ff9933");
+            } else if (query.includes("secure") || query.includes("hack") || query.includes("shield") || query.includes("protect")) {
+                response = "AI-CORE: Triple Isolation Shield operational. Dynamic Polymorphic Register Grid scrambled physical locations.";
+                color = "#33ff33";
+                addLog("SCCN-253: Scramble Catalyst ENGAGED", "#33ff33");
+            } else if (query.includes("speed") || query.includes("photonic") || query.includes("light") || query.includes("waveguide")) {
+                response = "AI-CORE: Optical Photonic Interconnects routing at light-speed across Teal and Magenta loops. Latency < 1ms.";
+                color = "#00ffff";
+                addLog("SCCN-281: Photonic Modulator ACTIVE", "#00ffff");
+            } else if (query.includes("repair") || query.includes("antibody") || query.includes("leak") || query.includes("pointer")) {
+                response = "AI-CORE: Biomimetic Antibody Repair Engine initialized. Neutralization loop scanning code arrays.";
+                color = "#ff00ff";
+                addLog("SCCN-261: Antigen Detection VERIFIED", "#ff00ff");
+            } else if (query.includes("verilog") || query.includes("arbitrator") || query.includes("simulate")) {
+                response = "AI-CORE: Micro-Nerve Interconnect Arbitrator matrix running in RTL Verilog Mode. state=1=2=3=4=AI.";
+                color = "#ffff33";
+                addLog("Arbitrator Status: STATE_SOFT_DRIVEN", "#ffff33");
+            } else if (query.includes("quantum") || query.includes("sub-state") || query.includes("memory") || query.includes("qsmi")) {
+                response = "AI-CORE: Quantum Sub-State Memory Interface (QSMI) holding register states in superposition wave.";
+                color = "#aa55ff";
+                addLog("QSMI-301: Superposition Matcher ACTIVE", "#aa55ff");
+            } else if (query.includes("graphene") || query.includes("cooling") || query.includes("fluid")) {
+                response = "AI-CORE: Dynamic Micro-Fluidic Phase Channels operating. Graphene interlayer thermal highway steering heat.";
+                color = "#00ffcc";
+                addLog("SCCN-286: Capillary Pump Ramping", "#00ffcc");
+            } else {
+                response = "AI-CORE: Processing natural language instruction. Translating legacy stream to parallel micro-operations.";
+                color = "#00ffcc";
+                addLog("FSMF-101: Stream Filter Parsing...", "#00ffcc");
+            }
+            addLog(response, color);
         }
 
         // Initialize
