@@ -232,7 +232,10 @@
             </div>
             
             <div class="hud-title" style="margin-top: 15px;">NATURAL LANGUAGE INTERFACE</div>
-            <input type="text" id="ai-chat-input" placeholder="Query Solo Rock AI Core..." style="background:#000; border:1px solid #00ffcc; color:#00ffcc; font-family:'Share Tech Mono', monospace; padding:8px; font-size:0.9rem; outline:none; width:100%; box-sizing:border-box;">
+            <div style="display:flex; gap:5px; width:100%;">
+                <input type="text" id="ai-chat-input" placeholder="Query Solo Rock AI Core..." style="flex:1; background:#000; border:1px solid #00ffcc; color:#00ffcc; font-family:'Share Tech Mono', monospace; padding:8px; font-size:0.9rem; outline:none; box-sizing:border-box;">
+                <button id="voice-btn" style="padding:0 12px; font-size:1rem; border-color:#00ffcc; color:#00ffcc; min-width: 40px;">🎤</button>
+            </div>
         </div>
 
         <!-- Visualizer Canvas -->
@@ -404,6 +407,33 @@
                 }, 200);
             }
         });
+
+        // Speech Recognition Implementation
+        const voiceBtn = document.getElementById('voice-btn');
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            voiceBtn.addEventListener('click', () => {
+                recognition.start();
+                addLog("Voice recognition listening...", "#ffff33");
+            });
+
+            recognition.onresult = (event) => {
+                const speechToText = event.results[0][0].transcript;
+                addLog(`User (Voice): ${speechToText}`, '#ffffff');
+                processQuery(speechToText);
+            };
+
+            recognition.onerror = (event) => {
+                addLog(`Voice Error: ${event.error}`, '#ff3366');
+            };
+        } else {
+            voiceBtn.style.display = 'none'; // Hide button if Speech API is not supported in the browser
+        }
 
         function processQuery(q) {
             const query = q.toLowerCase();
