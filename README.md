@@ -451,6 +451,67 @@ A browser-playable, cross-platform reimplementation of the Wolfenstein-style ray
 
 ---
 
+## Analytics & Optimization
+
+**Optional enhancements for production monitoring and system tuning.**
+
+### Analytics Dashboard (Streamlit)
+
+Real-time trend analysis, decision distribution, and performance metrics:
+
+```bash
+streamlit run dashboard_analytics.py
+```
+
+Shows:
+- 1h/1d/1w historical trends (temperature, CPU load, RAM)
+- Thermal trend detection (rising/falling slopes)
+- Decision distribution (FULL_RATE/BATCH/THROTTLE/EMERGENCY breakdown)
+- Throttle impact calculation (% time spent pacing)
+- Performance metrics with configurable time ranges
+- Raw event log for manual analysis
+
+### Auto-Calibration Tool
+
+Measure baseline system behavior and auto-generate threshold suggestions:
+
+```bash
+# Run on idle system for 1 hour, generates calibration.json
+python -m analysis.calibrate --duration 3600
+
+# Or shorter baseline (5 minutes for testing)
+python -m analysis.calibrate --duration 300 --no-save
+```
+
+Generates calibration suggestions based on:
+- 70th percentile of idle temperature (warning threshold)
+- 95th percentile of idle temperature (critical threshold)
+- 85th percentile of idle CPU load (high threshold)
+- 95th percentile of idle CPU load (critical threshold)
+- Safe RAM headroom based on observed peaks
+
+### Performance Profiling
+
+Measure CLI latency, decision engine responsiveness, and database overhead:
+
+```bash
+# Profile all components
+python -m profiling.profile_cli --all --ticks 100
+
+# Or profile specific components
+python -m profiling.profile_cli --cli
+python -m profiling.profile_cli --decision --ticks 50
+python -m profiling.profile_cli --database
+```
+
+Reports:
+- CLI command latency (diagnose, monitor, benchmark, report)
+- Decision engine latency per tick (ms)
+- Database insert/query performance (ms)
+- Memory usage peaks
+
+---
+
 ## Running the System
 
 Run components in increasing order of scope — each step is safe to stop at any time with `Ctrl+C`:
@@ -616,6 +677,13 @@ Solo-Rock-Matrix-Engine/
 │   ├── configmap.yaml             #   ConfigMap for SOLO ROCK configuration
 │   ├── deployment.yaml            #   Deployment, ServiceAccount, RBAC
 │   └── service.yaml               #   Service and NetworkPolicy
+├── analysis/                       # [NEW] Calibration and optimization
+│   ├── __init__.py
+│   └── calibrate.py               #   Auto-calibration tool: baseline scan → threshold suggestions
+├── profiling/                      # [NEW] Performance measurement
+│   ├── __init__.py
+│   └── profile_cli.py             #   Profiler: CLI latency, decision latency, database overhead
+├── dashboard_analytics.py          # [NEW] Streamlit analytics: trends, decisions, metrics (1h/1d/1w)
 ├── examples/                       # [NEW] Integration examples
 │   ├── README.md                  #   Complete guide to examples
 │   ├── ml_training_loop.py        #   ML training with adaptive batching (30-50% dispatch reduction)
@@ -647,7 +715,15 @@ Honest disclosure for contributors and judges — this is a hackathon prototype,
 | Emergency Override loop | ✅ Working — verified end-to-end (trigger → throttle → cooldown → release) |
 | Peripheral nerve fabric & registries | ✅ Working — nerves load and fire |
 | Demo workload & stress tests | ✅ Working (Windows) |
-| Streamlit dashboard | ✅ Working — live telemetry, decision, and 4-mode routing, plus a safe simulation mode |
+| Streamlit dashboard (live) | ✅ Working — live telemetry, decision, and 4-mode routing, plus simulation mode |
+| Real-time alerting (email/Slack/webhooks) | ✅ Working — EMERGENCY events trigger alerts via configured backends |
+| Deployment (Linux/Windows/Kubernetes) | ✅ Working — systemd, PowerShell, and K8s manifests |
+| Analytics dashboard (Streamlit) | ✅ Working — historical trends, decision distribution, 1h/1d/1w analysis |
+| Auto-calibration tool | ✅ Working — baseline scan generates threshold suggestions |
+| Performance profiling suite | ✅ Working — CLI, decision, and database latency measurement |
+| Event logging & persistence | ✅ Working — SQLite database with historical queries and trend detection |
+| Configuration management | ✅ Working — YAML-based thresholds with auto-tuning via calibration.json |
+| CI/CD pipeline (GitHub Actions) | ✅ Working — lint, test, docs workflows with cross-platform matrix |
 | AMD ROCm SMI GPU telemetry (utilization/wattage) | 🚧 GPU *presence* detected; live GPU load/wattage feed still on roadmap |
 | FPGA arbiter | 🔬 Research concept with testbench |
 
@@ -655,11 +731,21 @@ Honest disclosure for contributors and judges — this is a hackathon prototype,
 
 ## Roadmap
 
+### Phase 3 (Completed ✅)
+
+- [x] **Real-time alerting** — email (SMTP), Slack webhooks, generic HTTP POST for custom monitoring systems
+- [x] **Deployment documentation** — Linux/systemd, Windows/Service, Kubernetes with examples
+- [x] **Analytics dashboard** — Streamlit app for trend analysis, decision distribution, 1h/1d/1w views
+- [x] **Auto-calibration tool** — baseline scan on idle system, suggests optimal thresholds per hardware
+- [x] **Performance profiling** — CLI latency, decision engine latency, database overhead measurement
+
+### Future Enhancements
+
 - [ ] **AMD ROCm live telemetry** — `topology.py` already detects ROCm-visible AMD GPUs; wire `rocm-smi`/`pyrsmi` utilization and wattage into `GlobalStateVector` so `gpu_load`/`wattage` in the AMSV reflect the real device, not just its presence
 - [ ] **Linux power control** — a `cpufreq`/`RAPL`-based equivalent to `power_controller.py`'s Windows `powercfg` path, so THROTTLE decisions can act on Linux instead of staying telemetry-only
 - [ ] **DPU offload lane** — route network/storage I/O nerves through DPU-class devices where `topology.py` reports one present
-- [ ] **Dashboard history for GPU/DPU lanes** — extend `dashboard.py`'s history chart once live GPU telemetry lands above
-- [ ] **Test suite & CI** — automated regression coverage for the decision engine, node routing, and AMSV layout
+- [ ] **Multi-machine monitoring** — distributed agents collecting from multiple systems, centralized aggregation API
+- [ ] **Enterprise dashboard** — React/Vue-based UI with real-time WebSocket updates, replacing Streamlit
 
 ---
 
