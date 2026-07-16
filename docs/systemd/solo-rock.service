@@ -1,0 +1,43 @@
+[Unit]
+Description=SOLO ROCK Hardware Orchestrator — Real-time CPU/GPU Thermal Management
+Documentation=https://github.com/hellomrsys-maker/solo-rock-matrix-engine
+After=network.target syslog.target
+
+[Service]
+Type=simple
+User=solo-rock
+Group=solo-rock
+WorkingDirectory=/opt/solo-rock
+Environment="PATH=/opt/solo-rock/.venv/bin:/usr/local/bin:/usr/bin:/bin"
+
+# Main process: run live monitor indefinitely (--duration 0 = forever)
+ExecStart=/usr/bin/python3 monitor_realtime.py --duration 0
+
+# Auto-restart on failure
+Restart=always
+RestartSec=10
+StartLimitInterval=600
+StartLimitBurst=3
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=solo-rock
+
+# Resource limits
+MemoryLimit=512M
+CPUQuota=50%
+
+# Security
+PrivateTmp=yes
+NoNewPrivileges=true
+ProtectHome=yes
+ProtectSystem=strict
+ReadWritePaths=/var/log/solo-rock /opt/solo-rock/solo_rock.db
+
+# Permissions for sensor access (may need adjustment per-system)
+CapabilityBoundingSet=CAP_SYS_ADMIN CAP_CHOWN
+AmbientCapabilities=CAP_SYS_ADMIN
+
+[Install]
+WantedBy=multi-user.target

@@ -27,6 +27,7 @@
 - [Dynamic Hardware Support](#dynamic-hardware-support)
 - [Getting Started](#getting-started)
 - [Production CLI Tool](#production-cli-tool)
+- [Deployment](#deployment)
 - [Dashboard](#dashboard)
 - [Running the System](#running-the-system)
 - [Benchmarks & Stress Tests](#benchmarks--stress-tests)
@@ -361,6 +362,68 @@ See [`examples/README.md`](examples/README.md) for full guide, common patterns, 
 
 ---
 
+## Deployment
+
+**Run SOLO ROCK in production on Linux (systemd), Windows (Service), or Kubernetes.**
+
+### Quick Links
+
+- **Linux / systemd:** Install via systemd service, configure in `/etc/solo-rock/config.yaml`, manage with `systemctl`
+- **Windows:** PowerShell installer, configuration in `C:\Program Files\Solo-Rock\config.yaml`, manage via Services
+- **Kubernetes:** Helm-ready manifests (Deployment, ConfigMap, Service), horizontal scaling, secrets for credentials
+
+**Full deployment guide:** [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)
+
+### Linux (systemd)
+
+```bash
+# Install
+sudo cp docs/systemd/solo-rock.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable solo-rock
+sudo systemctl start solo-rock
+
+# Monitor
+sudo journalctl -u solo-rock -f
+```
+
+### Windows (Service)
+
+```powershell
+# Install (as Administrator)
+powershell -ExecutionPolicy Bypass -File docs/windows/install-service.ps1
+
+# Manage
+Start-Service SoloRock
+Stop-Service SoloRock
+Get-Service SoloRock
+
+# Uninstall
+powershell -ExecutionPolicy Bypass -File docs/windows/uninstall-service.ps1
+```
+
+### Kubernetes
+
+```bash
+# Deploy
+kubectl apply -f docs/kubernetes/configmap.yaml
+kubectl apply -f docs/kubernetes/deployment.yaml
+kubectl apply -f docs/kubernetes/service.yaml
+
+# Monitor
+kubectl logs -f deployment/solo-rock
+kubectl get pods -l app=solo-rock
+```
+
+See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for:
+- Detailed installation guides for each platform
+- Configuration management (YAML thresholds)
+- Credential setup (env vars for email/Slack alerting)
+- Troubleshooting and log analysis
+- Scaling and high-availability patterns
+
+---
+
 ## Dashboard
 
 There are **two** Streamlit apps in this repo, for two different purposes — deploy or run whichever matches what you want to show:
@@ -543,6 +606,16 @@ Solo-Rock-Matrix-Engine/
 ├── architectural_specification.md  # Full design specification
 ├── docs/ARCHITECTURE.md            # Code-level architectural mapping
 ├── docs/DIAGNOSTICS.md            # Production CLI user guide + workflows
+├── docs/DEPLOYMENT.md             # [NEW] Deployment guide (Linux/systemd, Windows/Service, Kubernetes)
+├── docs/systemd/                  # [NEW] Linux systemd service files
+│   └── solo-rock.service          #   Systemd service unit
+├── docs/windows/                  # [NEW] Windows service installer scripts
+│   ├── install-service.ps1        #   PowerShell installer
+│   └── uninstall-service.ps1      #   PowerShell uninstaller
+├── docs/kubernetes/               # [NEW] Kubernetes deployment manifests
+│   ├── configmap.yaml             #   ConfigMap for SOLO ROCK configuration
+│   ├── deployment.yaml            #   Deployment, ServiceAccount, RBAC
+│   └── service.yaml               #   Service and NetworkPolicy
 ├── examples/                       # [NEW] Integration examples
 │   ├── README.md                  #   Complete guide to examples
 │   ├── ml_training_loop.py        #   ML training with adaptive batching (30-50% dispatch reduction)

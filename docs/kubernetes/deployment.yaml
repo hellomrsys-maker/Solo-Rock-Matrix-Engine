@@ -1,0 +1,191 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: solo-rock
+  namespace: default
+  labels:
+    app: solo-rock
+    version: v1
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: solo-rock
+  template:
+    metadata:
+      labels:
+        app: solo-rock
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+    spec:
+      serviceAccountName: solo-rock
+      restartPolicy: Always
+
+      # Node selector for systems with temperature sensors
+      nodeSelector:
+        kubernetes.io/os: linux
+
+      # Tolerate node taints if needed (e.g., GPU nodes)
+      # tolerations:
+      # - key: "dedicated"
+      #   operator: "Equal"
+      #   value: "gpu"
+      #   effect: "NoSchedule"
+
+      containers:
+      - name: solo-rock
+        image: solo-rock:latest
+        imagePullPolicy: IfNotPresent
+
+        # Command: run live monitor indefinitely
+        command: ["/usr/bin/python3"]
+        args: ["monitor_realtime.py", "--duration", "0", "--interval", "2.0"]
+
+        # Environment variables from ConfigMap and Secret
+        env:
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        - name: SOLO_ROCK_EMAIL_USER
+          valueFrom:
+            secretKeyRef:
+              name: solo-rock-alerts
+              key: email-user
+              optional: true
+        - name: SOLO_ROCK_EMAIL_PASS
+          valueFrom:
+            secretKeyRef:
+              name: solo-rock-alerts
+              key: email-pass
+              optional: true
+        - name: SOLO_ROCK_SLACK_WEBHOOK
+          valueFrom:
+            secretKeyRef:
+              name: solo-rock-alerts
+              key: slack-webhook
+              optional: true
+
+        # Volume mounts
+        volumeMounts:
+        - name: config
+          mountPath: /etc/solo-rock
+          readOnly: true
+        - name: data
+          mountPath: /var/lib/solo-rock
+
+        # Resource requests and limits
+        resources:
+          requests:
+            cpu: 100m          # Minimum CPU
+            memory: 128Mi      # Minimum RAM
+          limits:
+            cpu: 500m          # Maximum CPU
+            memory: 512Mi      # Maximum RAM
+
+        # Health checks
+        livenessProbe:
+          exec:
+            command:
+            - /bin/bash
+            - -c
+            - "ps aux | grep '[m]onitor_realtime' && python -c \"from config import load_config; load_config('/etc/solo-rock/config.yaml'); print('OK')\""
+          initialDelaySeconds: 30
+          periodSeconds: 60
+          timeoutSeconds: 5
+          failureThreshold: 3
+
+        readinessProbe:
+          exec:
+            command:
+            - /bin/bash
+            - -c
+            - "python -c \"from diagnostics.logger import EventLogger; logger = EventLogger(); print('OK')\""
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 2
+
+        # Security context
+        securityContext:
+          runAsNonRoot: false
+          runAsUser: 0
+          allowPrivilegeEscalation: true
+          capabilities:
+            add:
+            - SYS_ADMIN
+
+      # Volumes
+      volumes:
+      - name: config
+        configMap:
+          name: solo-rock-config
+          defaultMode: 0444
+      - name: data
+        emptyDir:
+          sizeLimit: 1Gi
+
+      # Pod disruption budget for reliability
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - solo-rock
+              topologyKey: kubernetes.io/hostname
+
+---
+# ServiceAccount for pod
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: solo-rock
+  namespace: default
+  labels:
+    app: solo-rock
+
+---
+# ClusterRole for observability (reading cluster info)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: solo-rock
+  labels:
+    app: solo-rock
+rules:
+- apiGroups: [""]
+  resources: ["nodes"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list"]
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["get", "list"]
+
+---
+# ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: solo-rock
+  labels:
+    app: solo-rock
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: solo-rock
+subjects:
+- kind: ServiceAccount
+  name: solo-rock
+  namespace: default
