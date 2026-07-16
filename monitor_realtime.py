@@ -28,7 +28,7 @@ class LiveMonitor:
         self.duration = duration_seconds
         self.refresh_interval = refresh_interval
         self.config = config
-        self.ceo = CentralAI()
+        self.ceo = CentralAI(config=config)
         self.diag_engine = DiagnosticsEngine(config=config)
         self.history = deque(maxlen=30)  # 30-second rolling window
         self.decision_counts = {FULL_RATE: 0, BATCH: 0, THROTTLE: 0, EMERGENCY: 0}

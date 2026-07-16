@@ -28,3 +28,32 @@ decisions:
 #
 # cpu:
 #   load_high_percent: 75  # Trigger pacing earlier
+
+# Alert Configuration
+# Enable/disable alerting and configure backends
+alerting:
+  enabled: true
+  backends:
+    # Email alerting (requires SOLO_ROCK_EMAIL_USER and SOLO_ROCK_EMAIL_PASS env vars)
+    # - type: email
+    #   smtp_server: "smtp.gmail.com"
+    #   smtp_port: 587
+    #   use_tls: true
+    #   sender: "alerts@example.com"
+    #   recipients:
+    #     - "ops@example.com"
+    #     - "alerts@example.com"
+    #   username: ${SOLO_ROCK_EMAIL_USER}  # Set via env var
+    #   password: ${SOLO_ROCK_EMAIL_PASS}  # Set via env var
+
+    # Slack alerting (requires SOLO_ROCK_SLACK_WEBHOOK env var)
+    # - type: slack
+    #   webhook_url: ${SOLO_ROCK_SLACK_WEBHOOK}
+    #   channel: "#alerts"
+
+    # Generic webhook alerting (for custom monitoring systems like PagerDuty, Opsgenie)
+    # - type: webhook
+    #   url: "https://monitoring.example.com/alerts"
+    #   headers:
+    #     Authorization: "Bearer ${MONITORING_API_TOKEN}"
+    #     X-Custom-Header: "value"
