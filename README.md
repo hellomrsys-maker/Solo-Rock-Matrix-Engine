@@ -512,6 +512,74 @@ Reports:
 
 ---
 
+## Natural Language Query Interface
+
+**Ask SOLO ROCK questions in plain English** — no code, no CLI commands needed.
+
+Both dashboards include a natural language query interface in the sidebar. Type questions and get instant answers:
+
+### Example Queries
+
+```
+"show me a report"          → System report with metrics and recommendations
+"how is it working"         → Current health status (Healthy, Warning, Critical)
+"analyze trends"            → Trend analysis with thermal and load patterns
+"what happened last day"    → Report focusing on last 24 hours
+```
+
+### Supported Query Types
+
+1. **Reports** — Generate system reports with key metrics
+   - "show me a report"
+   - "generate a summary"
+   - "what happened last hour"
+
+2. **Status** — Check current system health
+   - "how is it working"
+   - "what's the status"
+   - "is everything ok"
+
+3. **Analysis** — Analyze historical trends
+   - "analyze the data"
+   - "show me trends"
+   - "what changed"
+
+4. **Help** — Get guidance and examples
+   - "help"
+   - "what can you do"
+   - "show examples"
+
+### Features
+
+- 📝 Lightweight rule-based NLU (no ML models, runs offline)
+- 🚀 Fast processing (<500ms per query)
+- 📊 Generates reports with statistics and recommendations
+- 📈 Analyzes trends (rising, falling, stable)
+- 💡 Automatically suggests example queries
+- 🔍 Understands time ranges ("last hour", "last day", "last week")
+
+### Quick Start
+
+```bash
+# Start dashboard with NLU interface
+streamlit run dashboard.py
+
+# Or analytics dashboard with NLU
+streamlit run dashboard_analytics.py
+```
+
+Then look for the **"📝 Ask SOLO ROCK"** section in the left sidebar.
+
+### Learn More
+
+See **[`docs/NLU_GUIDE.md`](/docs/NLU_GUIDE.md)** for:
+- Complete query examples and expected responses
+- Explanation of system concepts (FULL_RATE, BATCH, THROTTLE, EMERGENCY)
+- Tips for phrasing questions naturally
+- Troubleshooting common issues
+
+---
+
 ## Running the System
 
 Run components in increasing order of scope — each step is safe to stop at any time with `Ctrl+C`:
